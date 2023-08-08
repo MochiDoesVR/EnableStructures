@@ -17,9 +17,11 @@ public class Config {
     public static final class Common {
 
         public final ForgeConfigSpec.BooleanValue debug;
+        public final ForgeConfigSpec.BooleanValue useWhitelist;
         public final ForgeConfigSpec.ConfigValue<List<? extends String>> disabledStructures;
 
         public Common() {
+            useWhitelist = COMMON_BUILDER.comment("Use a whitelist instead of a blacklist.").define("Whitelist Mode", false);
             debug = COMMON_BUILDER.comment("If enabled will output to the debug.log when a structure is disabled.").define("Enable Debug", false);
             disabledStructures = COMMON_BUILDER.comment("This list defines the structures that should be disabled from generating.").defineListAllowEmpty(List.of("Disabled Structures"),() -> List.of("minecraft:desert_pyramid"), key -> ForgeRegistries.STRUCTURE_FEATURES.containsKey(new ResourceLocation((String) key)));
         }

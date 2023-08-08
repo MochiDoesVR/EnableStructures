@@ -23,20 +23,40 @@ public class MixinChunkGenerator {
 
     @Inject(method = "tryGenerateStructure", at = @At("HEAD"), cancellable = true)
     public void disableStructures$AttemptStructureDisable(StructureSet.StructureSelectionEntry structureSelectionEntry, StructureFeatureManager structureFeatureManager, RegistryAccess registryAccess, StructureManager structureManager, long chunk, ChunkAccess chunkAccess, ChunkPos chunkPos, SectionPos sectionPos, CallbackInfoReturnable<Boolean> cir) {
-        if (Config.COMMON.disabledStructures.get().contains(structureSelectionEntry.structure().value().feature.getRegistryName().toString())) {
-            if (Config.COMMON.debug.get()) {
-                DisableStructures.LOGGER.debug("Disabled generation of {}", structureSelectionEntry.structure().value().feature.getRegistryName().toString());
+        if (!Config.COMMON.useWhitelist.get()) {
+            if (Config.COMMON.disabledStructures.get().contains(structureSelectionEntry.structure().value().feature.getRegistryName().toString())) {
+                if (Config.COMMON.debug.get()) {
+                    DisableStructures.LOGGER.debug("Blocked generation of {}", structureSelectionEntry.structure().value().feature.getRegistryName().toString());
+                }
+                cir.setReturnValue(false);
             }
-            cir.setReturnValue(false);
+        } else {
+            if (!Config.COMMON.disabledStructures.get().contains(structureSelectionEntry.structure().value().feature.getRegistryName().toString())) {
+                if (Config.COMMON.debug.get()) {
+                    DisableStructures.LOGGER.debug("Blocked generation of {}", structureSelectionEntry.structure().value().feature.getRegistryName().toString());
+                }
+                cir.setReturnValue(false);
+            }
         }
     }
 
     @Inject(method = "findNearestMapFeature", at = @At("HEAD"), cancellable = true)
     public void disableStructures$FindNoDisabledStructuresInsteadOfLooking(ServerLevel level, HolderSet<ConfiguredStructureFeature<?, ?>> configuredStructureFeatureHolderSet, BlockPos blockPos, int tries, boolean p_207975_, CallbackInfoReturnable<Pair<BlockPos, Holder<ConfiguredStructureFeature<?, ?>>>> cir) {
-        configuredStructureFeatureHolderSet.stream().forEach(configuredStructureFeatureHolder -> {
-            if (Config.COMMON.disabledStructures.get().contains(configuredStructureFeatureHolder.value().feature.getRegistryName().toString())) {
-                cir.setReturnValue(null);
-            }
-        });
+        if(!Config.COMMON.useWhitelist.get())
+        {
+            configuredStructureFeatureHolderSet.stream().forEach(configuredStructureFeatureHolder -> {
+                if (!Config.COMMON.disabledStructures.get().contains(configuredStructureFeatureHolder.value().feature.getRegistryName().toString())) {
+                    cir.setReturnValue(null);
+                }
+            });
+        }
+        else
+        {
+            configuredStructureFeatureHolderSet.stream().forEach(configuredStructureFeatureHolder -> {
+                if (Config.COMMON.disabledStructures.get().contains(configuredStructureFeatureHolder.value().feature.getRegistryName().toString())) {
+                    cir.setReturnValue(null);
+                }
+            });
+        }
     }
 }
